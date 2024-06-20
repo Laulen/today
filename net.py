@@ -21,7 +21,25 @@ class Net(nn.Module):
             if mode == 'train':
                 self.model = DNANet(mode='train')
             else:
-                self.model = DNANet(mode='test')  
+                self.model = DNANet(mode='test')
+        elif model_name == 'DCANet':
+            if mode == 'train':
+                self.model = DCANet(mode='train')
+            else:
+                self.model = DCANet(mode='test')
+            print('mode_is=', mode)
+        elif model_name == 'DCAS6Net':
+            if mode == 'train':
+                self.model = DCAS6Net(mode='train')
+            else:
+                self.model = DCAS6Net(mode='test')
+            print('mode_is=', mode)
+        elif model_name == 'DCAS7Net':
+            if mode == 'train':
+                self.model = DCAS7Net(mode='train')
+            else:
+                self.model = DCAS7Net(mode='test')
+            print('mode_is=', mode)
         elif model_name == 'DNANet_BY':
             if mode == 'train':
                 self.model = DNAnet_BY(mode='train')
@@ -50,8 +68,9 @@ class Net(nn.Module):
             self.model = ISTDU_Net()
         elif model_name == 'RDIAN':
             self.model = RDIAN()
-        elif model_name == 'ResUNet':
-            self.model = ResUNet()
+        
+        self.model = self.model.cuda()
+        self.model = torch.nn.DataParallel(self.model)
         
     def forward(self, img):
         return self.model(img)

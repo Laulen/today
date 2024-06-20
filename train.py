@@ -28,7 +28,7 @@ parser.add_argument("--patchSize", type=int, default=256, help="Training patch s
 parser.add_argument("--save", default='./log', type=str, help="Save path of checkpoints")
 parser.add_argument("--resume", default=None, nargs='+', help="Resume from exisiting checkpoints (default: None)")
 parser.add_argument("--pretrained", default=None, nargs='+', help="Load pretrained checkpoints (default: None)")
-parser.add_argument("--nEpochs", type=int, default=1000, help="Number of epochs")
+parser.add_argument("--nEpochs", type=int, default=400, help="Number of epochs")
 parser.add_argument("--optimizer_name", default='Adam', type=str, help="optimizer name: Adam, Adagrad, SGD")
 parser.add_argument("--optimizer_settings", default={'lr': 5e-4}, type=dict, help="optimizer settings")
 parser.add_argument("--scheduler_name", default='MultiStepLR', type=str, help="scheduler name: MultiStepLR")
@@ -77,7 +77,7 @@ def train():
     if opt.optimizer_name == 'Adam':
         opt.optimizer_settings = {'lr': 5e-4}
         opt.scheduler_name = 'MultiStepLR'
-        opt.scheduler_settings = {'epochs':1000, 'step': [200, 300], 'gamma': 0.1}
+        opt.scheduler_settings = {'epochs':400, 'step': [200, 300], 'gamma': 0.1}
         opt.scheduler_settings['epochs'] = opt.nEpochs
     
     ### Default settings of DNANet                
@@ -88,8 +88,7 @@ def train():
         opt.scheduler_settings['epochs'] = opt.nEpochs
         
     opt.nEpochs = opt.scheduler_settings['epochs']
-
-    net = torch.nn.DataParallel(net)
+        
     optimizer, scheduler = get_optimizer(net, opt.optimizer_name, opt.scheduler_name, opt.optimizer_settings, opt.scheduler_settings)
     
     for idx_epoch in range(epoch_state, opt.nEpochs):
@@ -98,7 +97,7 @@ def train():
             if img.shape[0] == 1:
                 continue
             pred = net.forward(img)
-            loss = net.module.loss(pred, gt_mask)
+            loss = net.loss(pred, gt_mask)
             total_loss_epoch.append(loss.detach().cpu())
             
             optimizer.zero_grad()
@@ -118,7 +117,7 @@ def train():
             save_pth = opt.save + '/' + opt.dataset_name + '/' + opt.model_name + '_' + str(idx_epoch + 1) + '.pth.tar'
             save_checkpoint({
                 'epoch': idx_epoch + 1,
-                'state_dict': net.module.state_dict(),
+                'state_dict': net.state_dict(),
                 'total_loss': total_loss_list,
                 }, save_pth)
             test(save_pth)
@@ -127,7 +126,7 @@ def train():
             save_pth = opt.save + '/' + opt.dataset_name + '/' + opt.model_name + '_' + str(idx_epoch + 1) + '.pth.tar'
             save_checkpoint({
                 'epoch': idx_epoch + 1,
-                'state_dict': net.module.state_dict(),
+                'state_dict': net.state_dict(),
                 'total_loss': total_loss_list,
                 }, save_pth)
             test(save_pth)
